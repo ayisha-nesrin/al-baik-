@@ -3,243 +3,156 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Albake Bytes Cafe · Cafe app</title>
+<title>Albake Bytes Cafe</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="/style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<style>body{margin:0}[hidden]{display:none!important}.wrap{max-width:1000px}
-#orderList{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
-@media print{header.top,.toolbar,.card.noprint,#ordersView,#menuView,.sheet{display:none!important}.qrgrid{grid-template-columns:repeat(4,1fr)}.qrt{break-inside:avoid}}</style>
+<script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+<style>body{margin:0}[hidden]{display:none!important}</style>
 </head>
 <body>
 <div class="wrap">
-  <header class="top">
-    <div class="brand"><span id="brandName" style="color:inherit">Albake Bytes Cafe</span> <span class="muted" style="font:600 13px var(--body)">Cafe app</span></div>
-    <div class="tabs" role="group" aria-label="View" id="tabs" hidden>
-      <button data-v="ordersView" aria-pressed="true">Orders</button>
-      <button data-v="menuView" aria-pressed="false">Menu</button>
-      <button data-v="qrView" aria-pressed="false">Seat QR</button>
-    </div>
-  </header>
-
-  <section id="login" class="card" style="max-width:360px;margin-top:30px">
-    <h3 style="font:800 20px var(--display);margin:0">Cafe sign in</h3>
-    <label class="f" for="pin">Staff PIN</label>
-    <input id="pin" type="password" inputmode="numeric" autocomplete="current-password">
-    <div class="err" id="loginErr"></div>
-    <button class="primary" id="loginBtn">Open cafe app</button>
-  </section>
-
-  <main id="ordersView" hidden>
-    <div class="toolbar" style="margin:10px 0 14px">
-      <span class="live" id="live"><i></i><span>Connecting…</span></span>
-      <span style="flex:1"></span>
-      <span class="pill on" data-f="active">Active</span>
-      <span class="pill" data-f="Delivered">Delivered</span>
-      <span class="pill" data-f="all">All today</span>
-      <button class="add" id="soundBtn">Turn on sound</button>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-      <div id="summary" class="muted"></div>
-      <span class="toolbar"><input id="repDate" type="date" style="width:auto;padding:5px 8px"><button class="add" id="reportBtn" style="border-color:var(--line);color:var(--ink)">Download sales</button></span>
-    </div>
-    <div id="orderList"></div>
-  </main>
-
-  <main id="menuView" hidden>
-    <div class="toolbar" style="margin-top:14px">
-      <h2 style="margin:0;flex:1">Menu <span class="muted" id="menuCount" style="font:500 13px var(--body)"></span></h2>
-      <button class="add" id="importBtn" style="border-color:var(--line);color:var(--ink)">Import spreadsheet</button>
-      <button class="add" id="exportBtn" style="border-color:var(--line);color:var(--ink)">Download menu</button>
-      <button class="add" id="addBtn">+ Add item</button>
-    </div>
-    <p class="muted">Tap an item to edit it or add a photo. Untick <b>In stock</b> when something runs out; customers see it as sold out straight away.</p>
-    <input id="menuSearch" type="search" placeholder="Search items" style="margin-bottom:10px">
-    <div id="menuList"></div>
-  </main>
-
-  <main id="qrView" hidden>
-    <h2>Seat QR codes</h2>
-    <div class="card noprint">
-      <p class="muted" style="margin:0 0 10px">Print these and stick one on each seat back or armrest. Scanning opens the menu with the seat already filled in.</p>
-      <div class="fields">
-        <div><label class="f" for="qScreen">Screen</label><input id="qScreen" type="number" min="1" value="1"></div>
-        <div><label class="f" for="qRows">Rows</label><input id="qRows" value="A-C" placeholder="A-C or H"></div>
-        <div><label class="f" for="qSeats">Seats</label><input id="qSeats" value="1-12" placeholder="1-20"></div>
+  <header class="top"><div class="brand" id="brand">Albake <span>Bytes</span> Cafe</div></header>
+  <main>
+    <div class="ticket">
+      <div class="grow">
+        <div class="lbl">Delivering to</div>
+        <div class="seat" id="seatLbl">Choose your seat</div>
+        <div class="muted" style="font-size:13px">Food comes to your seat in about 10 minutes. Enjoy the film.</div>
       </div>
-      <label class="f" for="qBase">Menu address</label>
-      <input id="qBase">
-      <div class="toolbar"><button class="primary" id="genQR" style="flex:1">Make QR codes</button><button class="ghost" id="printQR" style="flex:1;margin-top:16px">Print</button></div>
+      <button id="changeSeat">Change</button>
     </div>
-    <div class="qrgrid" id="qrOut"></div>
+    <div class="mine" id="mine"></div>
+    <input id="search" class="search" type="search" placeholder="Search snacks, coffee, drinks…" aria-label="Search the menu">
+    <nav class="rail" id="rail" aria-label="Categories"></nav>
+    <div id="menu"><p class="muted">Loading menu…</p></div>
   </main>
 </div>
+<div class="bar" id="bar" hidden><button id="openCart"><span id="barCount">0 items</span><span>View order →</span></button></div>
 <div class="sheet" id="sheet" hidden><div class="panel" id="panel" role="dialog" aria-modal="true"></div></div>
-<datalist id="catList"></datalist>
 
 <script>
 const $=s=>document.getElementById(s);
 const rs=n=>"₹"+Number(n).toLocaleString("en-IN");
-const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let PIN=sessionStorage.getItem("pin")||"";
-let orders=[],filter="active",sound=false,seen=new Set(),es=null;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let ITEMS={},CATS=[],FEE=20,GST=.05,PAYS=["UPI","Card","Cash"],cart=store.get("cart",{});
+const PAY_LABEL={Online:"Pay now (UPI / Card)",UPI:"UPI at seat",Card:"Card at seat",Cash:"Cash at seat"};
+let seat=parseSeat()||store.get("seat",null);
+function parseSeat(){const q=new URLSearchParams(location.search).get("seat")||location.hash.slice(1);
+  const m=/^S(\d+)-([A-Za-z]{1,2})(\d+)$/.exec(q||"");return m?{screen:m[1],row:m[2].toUpperCase(),num:m[3]}:null}
+if(seat)store.set("seat",seat);
+const seatText=s=>`Screen ${s.screen} · ${s.row}${s.num}`;
+const saveCart=()=>store.set("cart",cart);
 
-async function api(url,opt={}){const r=await fetch(url,{...opt,headers:{"Content-Type":"application/json","x-staff-pin":PIN}});
-  const j=await r.json().catch(()=>({}));if(r.status===401){logout();throw new Error("Wrong PIN")}if(!r.ok)throw new Error(j.error||"Request failed");return j}
+async function api(url,opt={}){const r=await fetch(url,{headers:{"Content-Type":"application/json"},...opt});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Something went wrong. Try again.");return j}
 
-async function login(){PIN=$("pin").value.trim();
-  try{await api("/api/staff/check");sessionStorage.setItem("pin",PIN);start()}
-  catch(e){$("loginErr").textContent=e.message==="Wrong PIN"?"That PIN didn't work. Ask the manager for the cafe PIN.":e.message}}
-function logout(){sessionStorage.removeItem("pin");PIN="";$("login").hidden=false;$("tabs").hidden=true;["ordersView","menuView","qrView"].forEach(v=>$(v).hidden=true);es&&es.close()}
-$("loginBtn").onclick=login;$("pin").onkeydown=e=>{if(e.key==="Enter")login()};
-
-function show(v){["ordersView","menuView","qrView"].forEach(x=>$(x).hidden=x!==v);
-  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
-  if(v==="menuView")loadMenu();if(v==="qrView"&&!$("qrOut").children.length)genQR()}
-$("tabs").onclick=e=>{const b=e.target.closest("button");if(b)show(b.dataset.v)};
-
-async function start(){$("login").hidden=true;api("/api/staff/check").then(j=>{$("brandName").textContent=j.cafeName;document.title=j.cafeName+" · Cafe app"}).catch(()=>{});$("tabs").hidden=false;show("ordersView");
-  orders=await api("/api/staff/orders");orders.forEach(o=>seen.add(o.id));renderOrders();connect()}
-
-function connect(){es&&es.close();es=new EventSource("/api/staff/stream?pin="+encodeURIComponent(PIN));
-  es.addEventListener("hello",()=>setLive(true));
-  es.addEventListener("order",e=>{const o=JSON.parse(e.data);const i=orders.findIndex(x=>x.id===o.id);
-    if(i>=0)orders[i]=o;else{orders.unshift(o);if(!seen.has(o.id)){seen.add(o.id);ding()}}renderOrders()});
-  es.addEventListener("menu",()=>{if(!$("menuView").hidden)loadMenu()});
-  es.onerror=()=>{setLive(false)}}
-function setLive(on){$("live").classList.toggle("on",on);$("live").lastElementChild.textContent=on?"Live":"Reconnecting…";if(on)api("/api/staff/orders").then(o=>{orders=o;o.forEach(x=>seen.add(x.id));renderOrders()}).catch(()=>{})}
-
-const NEXT={"Preparing":"On the way","On the way":"Delivered"};
-const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<1?"just now":m+" min ago"};
-function renderOrders(){
-  const list=orders.filter(o=>filter==="all"||(filter==="active"?["Preparing","On the way"].includes(o.status):o.status===filter));
-  const active=orders.filter(o=>["Preparing","On the way"].includes(o.status));
-  const sales=orders.filter(o=>o.status==="Delivered").reduce((a,o)=>a+o.total,0);
-  $("summary").textContent=`${active.length} active · ${orders.length} today · ${rs(sales)} delivered`;
-  $("orderList").innerHTML=list.length?list.map(o=>`<div class="card order ${o.status==="Delivered"?"ready":o.status==="Cancelled"?"cancel":o.status==="Preparing"?"new":""}">
-   <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><b style="font:800 20px var(--display)">${o.seat.row}${o.seat.num} <span class="muted" style="font:500 13px var(--body)">Screen ${o.seat.screen}</span></b><span class="pill">${o.status}</span></div>
-   <div class="muted" style="font-size:12px">${o.id} · ${ago(o.createdAt)}</div>
-   <ul style="margin:8px 0;padding-left:18px">${o.items.map(i=>`<li><b>${i.qty}×</b> ${esc(i.name)}</li>`).join("")}</ul>
-   ${o.paymentId?`<div class="muted" style="font-size:11px">Razorpay ${esc(o.paymentId)}</div>`:""}
-   ${o.note?`<div style="font-size:13px;margin-bottom:6px">📝 ${esc(o.note)}</div>`:""}
-   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>${o.paymentStatus==="Paid"?`<span class="pill" style="background:var(--ok);color:var(--bg)">Paid online</span> <b>${rs(o.total)}</b>`:`<span class="pill" style="background:var(--gold);color:#1d1724">Collect ${rs(o.total)}</span> ${esc(o.payment)}`}</span>
-   <span style="display:flex;gap:6px">${o.status==="Preparing"?`<button class="add" data-st="Cancelled" data-id="${o.id}" style="border-color:var(--line);color:var(--muted)">Cancel</button>`:""}${NEXT[o.status]?`<button class="add" data-st="${NEXT[o.status]}" data-id="${o.id}">${o.status==="Preparing"?"Send out":"Delivered"}</button>`:""}</span></div></div>`).join("")
-   :`<p class="muted">No orders here. New orders appear automatically.</p>`}
-$("orderList").onclick=async e=>{const b=e.target.closest("[data-st]");if(!b)return;b.disabled=true;
-  try{const o=await api("/api/staff/orders/"+b.dataset.id,{method:"PATCH",body:JSON.stringify({status:b.dataset.st})});orders=orders.map(x=>x.id===o.id?o:x);renderOrders()}catch(err){b.disabled=false}};
-document.querySelector(".toolbar").addEventListener("click",e=>{const p=e.target.closest("[data-f]");if(!p)return;filter=p.dataset.f;
-  document.querySelectorAll("[data-f]").forEach(x=>x.classList.toggle("on",x===p));renderOrders()});
-setInterval(renderOrders,60000);
-
-let actx;
-$("soundBtn").onclick=()=>{sound=!sound;$("soundBtn").textContent=sound?"Sound on":"Turn on sound";if(sound){actx=actx||new (window.AudioContext||window.webkitAudioContext)();ding()}};
-function ding(){if(!sound||!actx)return;[880,1320].forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);
-  const t=actx.currentTime+i*.18;g.gain.setValueAtTime(.25,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.start(t);o.stop(t+.3)})}
-
-// ---------- Menu manager ----------
-let MENU=[];
-const thumb=i=>i.photo?`<img src="${i.photo}" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:10px;flex:none">`:`<span class="emo" style="width:44px;height:44px;font-size:22px">${i.emoji||"🍽️"}</span>`;
-async function loadMenu(){MENU=await api("/api/staff/items");renderMenu()}
+async function loadMenu(){
+  try{const m=await api("/api/menu");setBrand(m.cafeName);FEE=m.fee;GST=m.gstRate;PAYS=m.payments||PAYS;ITEMS={};CATS=[];
+    m.items.forEach(i=>{ITEMS[i.id]=i;if(!CATS.includes(i.category))CATS.push(i.category)});
+    for(const k in cart)if(!ITEMS[k]||!ITEMS[k].available)delete cart[k];
+    renderMenu();updateBar()}
+  catch(e){$("menu").innerHTML=`<p class="muted">Couldn't load the menu. Check your connection and refresh.</p>`}}
 function renderMenu(){
-  const q=$("menuSearch").value.trim().toLowerCase();
-  const cats=[...new Set(MENU.map(i=>i.category))];
-  $("catList").innerHTML=cats.map(c=>`<option value="${esc(c)}">`).join("");
-  $("menuCount").textContent=`${MENU.length} items · ${MENU.filter(i=>!i.available).length} sold out`;
-  if(!MENU.length){$("menuList").innerHTML=`<div class="card"><b>Your menu is empty.</b><p class="muted">Tap <b>+ Add item</b> to add items one by one, or <b>Import spreadsheet</b> to add your whole menu at once.</p></div>`;return}
-  $("menuList").innerHTML=cats.map((c,ci)=>{const list=MENU.filter(i=>i.category===c&&(!q||(i.name+" "+i.description).toLowerCase().includes(q)));if(!list.length)return"";
-    const first=MENU.find(i=>i.category===c);
-    return `<section class="card" style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:8px"><h3 style="font:800 18px var(--display);margin:0;flex:1">${esc(c)} <span class="muted" style="font:500 13px var(--body)">${list.length}</span></h3>
-     ${q?"":`<button class="mv" data-mv="${first.id}" data-dir="up" data-whole="category" ${ci?"":"disabled"} aria-label="Move ${esc(c)} up">↑</button><button class="mv" data-mv="${first.id}" data-dir="down" data-whole="category" ${ci<cats.length-1?"":"disabled"} aria-label="Move ${esc(c)} down">↓</button>`}</div>
-     ${list.map((i,n)=>`<div class="mrow" data-edit="${i.id}" style="cursor:pointer">${thumb(i)}<span class="nm"><b>${i.veg?'<span class="veg"></span>':'<span class="nveg"></span>'}${esc(i.name)}</b><br><span class="muted" style="font-size:12px">${esc(i.description||"")}</span></span>
-      <b style="font-variant-numeric:tabular-nums">${rs(i.price)}</b>
-      <label class="switch" data-stop><input type="checkbox" data-av="${i.id}" ${i.available?"checked":""}> In stock</label>
-      ${q?"":`<span data-stop style="display:flex;gap:2px"><button class="mv" data-mv="${i.id}" data-dir="up" ${n?"":"disabled"} aria-label="Move up">↑</button><button class="mv" data-mv="${i.id}" data-dir="down" ${n<list.length-1?"":"disabled"} aria-label="Move down">↓</button></span>`}</div>`).join("")}</section>`}).join("")||`<p class="muted">No items match "${esc(q)}".</p>`}
-$("menuSearch").oninput=renderMenu;
-$("menuList").addEventListener("change",async e=>{const a=e.target.dataset.av;if(!a)return;
-  try{const u=await api("/api/staff/items/"+a,{method:"PATCH",body:JSON.stringify({available:e.target.checked})});MENU=MENU.map(i=>i.id===u.id?u:i);renderMenu()}catch(err){toast(err.message);loadMenu()}});
-$("menuList").addEventListener("click",async e=>{
-  const mv=e.target.closest("[data-mv]");
-  if(mv){mv.disabled=true;try{MENU=await api(`/api/staff/items/${mv.dataset.mv}/move`,{method:"POST",body:JSON.stringify({dir:mv.dataset.dir,whole:mv.dataset.whole})});renderMenu()}catch(err){toast(err.message)}return}
-  if(e.target.closest("[data-stop]"))return;
-  const row=e.target.closest("[data-edit]");if(row)editItem(MENU.find(i=>i.id===row.dataset.edit))});
+  $("rail").innerHTML=CATS.map((c,i)=>`<button data-c="${i}" class="${i?"":"on"}">${esc(c)}</button>`).join("");
+  const q=$("search").value.trim().toLowerCase();$("rail").hidden=!!q;
+  $("menu").innerHTML=CATS.map((c,i)=>{const list=Object.values(ITEMS).filter(x=>x.category===c&&(!q||(x.name+" "+(x.description||"")+" "+c).toLowerCase().includes(q)));
+    return list.length?`<section id="cat${i}"><h2>${esc(c)}</h2><div class="grid">${list.map(x=>card(x.id)).join("")}</div></section>`:""}).join("")
+    ||(q?`<p class="muted">Nothing matches "${esc(q)}".</p>`:`<p class="muted">The menu is being updated. Please check back in a minute.</p>`)}
+function setBrand(n){if(!n)return;document.title=n;const w=n.split(" ");$("brand").innerHTML=w.length>2?`${esc(w[0])} <span>${esc(w.slice(1,-1).join(" "))}</span> ${esc(w.at(-1))}`:w.length===2?`${esc(w[0])} <span>${esc(w[1])}</span>`:esc(n)}
+$("search").addEventListener("input",()=>renderMenu());
+function card(id){const i=ITEMS[id],q=cart[id]||0;
+  const right=!i.available?`<span class="soldout">Sold out</span>`:q?`<div class="qty"><button data-m="${id}" aria-label="Remove one">−</button><span class="c">${q}</span><button data-p="${id}" aria-label="Add one">+</button></div>`:`<button class="add" data-p="${id}">ADD</button>`;
+  return `<div class="item ${i.available?"":"out"}" data-id="${id}" role="button" tabindex="0" aria-label="Add ${esc(i.name)}">${i.photo?`<img class="ph" src="${i.photo}" alt="" loading="lazy">`:`<div class="emo">${i.emoji||"🍽️"}</div>`}<div class="t"><div class="n">${i.veg?'<span class="veg" title="Vegetarian"></span>':""}${esc(i.name)}</div><div class="d">${esc(i.description||"")}</div><div class="p">${rs(i.price)}</div></div>${right}</div>`}
+function refreshItem(id){const el=document.querySelector(`.item[data-id="${id}"]`);if(el)el.outerHTML=card(id);updateBar()}
+function change(id,d){if(!ITEMS[id]?.available)return;cart[id]=Math.max(0,(cart[id]||0)+d);if(!cart[id])delete cart[id];saveCart();refreshItem(id)}
+function totals(){let n=0,s=0;for(const k in cart){n+=cart[k];s+=cart[k]*ITEMS[k].price}const fee=s?FEE:0,gst=Math.round(s*GST);return{n,s,fee,gst,t:s+fee+gst}}
+function updateBar(){const t=totals();$("bar").hidden=!t.n;$("barCount").textContent=`${t.n} item${t.n>1?"s":""} · ${rs(t.s)}`}
+function renderSeat(){$("seatLbl").textContent=seat?seatText(seat):"Choose your seat"}
 
-function openSheet(h){$("panel").innerHTML=h;$("sheet").hidden=false;const f=$("panel").querySelector("input,textarea");f&&f.focus()}
-function closeSheet(){$("sheet").hidden=true}
+$("menu").addEventListener("click",e=>{const p=e.target.closest("[data-p]"),m=e.target.closest("[data-m]");
+  if(p)return change(p.dataset.p,1);if(m)return change(m.dataset.m,-1);
+  const it=e.target.closest(".item");if(it&&!cart[it.dataset.id])change(it.dataset.id,1)});
+$("menu").addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("item")){e.preventDefault();change(e.target.dataset.id,1)}});
+$("rail").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("#rail button").forEach(x=>x.classList.toggle("on",x===b));
+  $("cat"+b.dataset.c).scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"})});
+
+function openSheet(h){$("panel").innerHTML=h;$("sheet").hidden=false}
+function closeSheet(){$("sheet").hidden=true;stopTrack()}
 $("sheet").addEventListener("click",e=>{if(e.target.id==="sheet")closeSheet()});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("sheet").hidden)closeSheet()});
-function toast(msg){const t=document.createElement("div");t.textContent=msg;t.style.cssText="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:50;max-width:90%";document.body.appendChild(t);setTimeout(()=>t.remove(),3500)}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
 
-$("addBtn").onclick=()=>editItem(null);
-function editItem(it){const n=!it;it=it||{name:"",category:$("menuSearch").value?"":"",price:"",description:"",emoji:"",veg:true,available:true};
-  openSheet(`<h3>${n?"Add item":"Edit item"}</h3>
-  <label class="f" for="eName">Name</label><input id="eName" maxlength="80" value="${esc(it.name)}" placeholder="Paneer Puff">
-  <div class="fields" style="grid-template-columns:2fr 1fr">
-   <div><label class="f" for="eCat">Category</label><input id="eCat" list="catList" maxlength="40" value="${esc(it.category)}" placeholder="Snacks"></div>
-   <div><label class="f" for="ePrice">Price (₹)</label><input id="ePrice" type="number" min="1" inputmode="numeric" value="${esc(it.price)}"></div></div>
-  <label class="f" for="eDesc">Short description</label><input id="eDesc" maxlength="160" value="${esc(it.description||"")}" placeholder="Flaky pastry, spiced paneer filling">
-  <div class="fields" style="grid-template-columns:1fr 1fr 1fr;align-items:end">
-   <div><label class="f" for="eEmoji">Icon (emoji)</label><input id="eEmoji" maxlength="8" value="${esc(it.emoji||"")}" placeholder="🥐"></div>
-   <label class="switch" style="padding-bottom:10px"><input type="checkbox" id="eVeg" ${it.veg?"checked":""}> Vegetarian</label>
-   <label class="switch" style="padding-bottom:10px"><input type="checkbox" id="eAv" ${it.available?"checked":""}> In stock</label></div>
-  ${n?`<p class="muted" style="font-size:13px">You can add a photo after saving.</p>`:`<label class="f">Photo</label><div style="display:flex;align-items:center;gap:12px">${thumb(it)}
-   <label class="add" style="cursor:pointer">${it.photo?"Change photo":"Add photo"}<input type="file" id="ePhoto" accept="image/jpeg,image/png,image/webp" hidden></label>
-   ${it.photo?`<button class="add" id="eNoPhoto" style="border-color:var(--line);color:var(--muted)">Remove</button>`:""}<span class="muted" id="ePhotoMsg" style="font-size:12px">JPG, PNG or WebP</span></div>`}
-  <div class="err" id="eErr"></div>
-  <button class="primary" id="eSave">${n?"Add to menu":"Save changes"}</button>
-  ${n?`<button class="ghost" id="eCancel">Cancel</button>`:`<button class="ghost" id="eDel" style="color:var(--accent)">Delete item</button>`}`);
-  const body=()=>({name:$("eName").value,category:$("eCat").value,price:$("ePrice").value,description:$("eDesc").value,emoji:$("eEmoji").value,veg:$("eVeg").checked,available:$("eAv").checked});
-  $("eSave").onclick=async()=>{$("eSave").disabled=true;
-    try{await api(n?"/api/staff/items":"/api/staff/items/"+it.id,{method:n?"POST":"PATCH",body:JSON.stringify(body())});closeSheet();toast(n?"Added to menu":"Saved");loadMenu()}
-    catch(err){$("eErr").textContent=err.message;$("eSave").disabled=false}};
-  if(n)$("eCancel").onclick=closeSheet;
-  else{
-    $("eDel").onclick=()=>{const b=$("eDel");if(b.dataset.sure){api("/api/staff/items/"+it.id,{method:"DELETE"}).then(()=>{closeSheet();toast("Deleted");loadMenu()}).catch(err=>$("eErr").textContent=err.message);return}
-      b.dataset.sure=1;b.textContent=`Tap again to delete ${it.name}`;setTimeout(()=>{if(b.isConnected){delete b.dataset.sure;b.textContent="Delete item"}},4000)};
-    $("ePhoto").onchange=async e=>{const f=e.target.files[0];if(!f)return;$("ePhotoMsg").textContent="Uploading…";
-      try{const blob=await shrink(f);const r=await fetch(`/api/staff/items/${it.id}/photo`,{method:"POST",headers:{"Content-Type":blob.type,"x-staff-pin":PIN},body:blob});
-        const j=await r.json();if(!r.ok)throw new Error(j.error||"Upload failed");MENU=MENU.map(i=>i.id===j.id?j:i);editItem(j);renderMenu()}
-      catch(err){$("ePhotoMsg").textContent=err.message}};
-    if($("eNoPhoto"))$("eNoPhoto").onclick=async()=>{const j=await api(`/api/staff/items/${it.id}/photo`,{method:"DELETE"});MENU=MENU.map(i=>i.id===j.id?j:i);editItem(j);renderMenu()}}}
+function seatForm(){const s=seat||{screen:"",row:"",num:""};return `<div class="fields">
+ <div><label class="f" for="fS">Screen</label><input id="fS" inputmode="numeric" value="${esc(s.screen)}"></div>
+ <div><label class="f" for="fR">Row</label><input id="fR" maxlength="2" value="${esc(s.row)}"></div>
+ <div><label class="f" for="fN">Seat no.</label><input id="fN" inputmode="numeric" value="${esc(s.num)}"></div></div>`}
+function readSeat(){const s={screen:$("fS").value.trim(),row:$("fR").value.trim().toUpperCase(),num:$("fN").value.trim()};
+  return /^\d{1,2}$/.test(s.screen)&&/^[A-Z]{1,2}$/.test(s.row)&&/^\d{1,3}$/.test(s.num)?s:null}
+$("changeSeat").onclick=()=>{openSheet(`<h3>Your seat</h3><p class="muted" style="margin:0">Check your ticket for screen, row and seat number.</p>${seatForm()}<div class="err" id="err"></div><button class="primary" id="saveSeat">Save seat</button>`);
+  $("saveSeat").onclick=()=>{const s=readSeat();if(!s){$("err").textContent="Enter a screen number, a row letter and a seat number.";return}seat=s;store.set("seat",s);renderSeat();closeSheet()}};
 
-// Resize photos on the phone before upload (max 900px, JPEG) so the menu loads fast
-function shrink(file){return new Promise((ok,bad)=>{const img=new Image();img.onload=()=>{const s=Math.min(1,900/Math.max(img.width,img.height));
-  const c=document.createElement("canvas");c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-  c.toBlob(b=>b?ok(b):bad(new Error("Couldn't read that photo")),"image/jpeg",.82);URL.revokeObjectURL(img.src)};
-  img.onerror=()=>bad(new Error("Couldn't read that photo"));img.src=URL.createObjectURL(file)})}
+$("openCart").onclick=showCart;
+function showCart(){const t=totals();if(!t.n)return closeSheet();
+  openSheet(`<h3>Your order</h3>${Object.keys(cart).map(k=>`<div class="row"><span class="nm">${ITEMS[k].emoji||""} ${esc(ITEMS[k].name)}</span><div class="qty"><button data-cm="${k}" aria-label="Remove one">−</button><span class="c">${cart[k]}</span><button data-cp="${k}" aria-label="Add one">+</button></div><span style="min-width:64px;text-align:right;font-variant-numeric:tabular-nums">${rs(cart[k]*ITEMS[k].price)}</span></div>`).join("")}
+  <div style="margin-top:10px"><div class="tot"><span>Items</span><span>${rs(t.s)}</span></div><div class="tot"><span>Seat delivery</span><span>${rs(t.fee)}</span></div><div class="tot"><span>GST ${Math.round(GST*100)}%</span><span>${rs(t.gst)}</span></div><div class="tot big"><span>Total</span><span>${rs(t.t)}</span></div></div>
+  <label class="f">Deliver to</label>${seatForm()}
+  <label class="f" for="fNote">Note for the cafe (optional)</label><input id="fNote" maxlength="200" placeholder="Less ice, no onions…">
+  <label class="f">Payment</label><div class="pay">${PAYS.map((p,i)=>`<label><input type="radio" name="pay" value="${p}" ${i?"":"checked"}> ${PAY_LABEL[p]}</label>`).join("")}</div>
+  <div class="err" id="err"></div><button class="primary" id="place">Place order · ${rs(t.t)}</button><button class="ghost" id="keep">Add more items</button>`);
+  $("panel").onclick=e=>{const p=e.target.closest("[data-cp]"),m=e.target.closest("[data-cm]");if(p){change(p.dataset.cp,1);showCart()}if(m){change(m.dataset.cm,-1);showCart()}};
+  $("keep").onclick=closeSheet;$("place").onclick=place}
 
-$("importBtn").onclick=()=>{openSheet(`<h3>Import menu spreadsheet</h3>
-  <p class="muted" style="margin-top:0">Make a sheet in Excel or Google Sheets with these columns, then save or download it as <b>CSV</b>. Only <b>category, name, price</b> are required.</p>
-  <div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:12px;white-space:nowrap">${[["category","name","price","description","veg","emoji","available"],["Snacks","Veg Puff","30","Kerala bakery style","yes","🥟","yes"],["Coffee","Filter Coffee","40","","yes","☕","yes"]].map((r,i)=>`<tr>${r.map(c=>`<${i?"td":"th"} style="border:1px solid var(--line);padding:4px 8px;text-align:left">${c}</${i?"td":"th"}>`).join("")}</tr>`).join("")}</table></div>
-  <label class="f" for="iFile">CSV file</label><input type="file" id="iFile" accept=".csv,text/csv">
-  <label class="f" for="iText">…or paste the rows here</label><textarea id="iText" rows="5" placeholder="category,name,price&#10;Snacks,Veg Puff,30"></textarea>
-  <label class="f">What to do</label><div class="pay"><label><input type="radio" name="iMode" value="add" checked> Add new and update matching items</label><label><input type="radio" name="iMode" value="replace"> Replace the whole menu</label></div>
-  <div class="err" id="iErr"></div><button class="primary" id="iGo">Import</button><button class="ghost" id="iCancel">Cancel</button>`);
-  $("iFile").onchange=async e=>{const f=e.target.files[0];if(f)$("iText").value=await f.text()};
-  $("iCancel").onclick=closeSheet;
-  $("iGo").onclick=async()=>{const csv=$("iText").value.trim(),mode=document.querySelector("[name=iMode]:checked").value;
-    if(!csv){$("iErr").textContent="Choose a CSV file or paste your rows first.";return}
-    if(mode==="replace"&&!$("iGo").dataset.sure){$("iGo").dataset.sure=1;$("iGo").textContent="Tap again to replace the whole menu";return}
-    $("iGo").disabled=true;
-    try{const r=await api("/api/staff/menu/import",{method:"POST",body:JSON.stringify({csv,mode})});closeSheet();toast(`Imported: ${r.added} added, ${r.updated} updated`);loadMenu()}
-    catch(err){$("iErr").textContent=err.message;$("iGo").disabled=false}}};
+async function place(){const s=readSeat();if(!s){$("err").textContent="Enter a valid screen, row and seat so we can find you.";return}
+  const btn=$("place"),payment=document.querySelector('[name=pay]:checked').value;btn.disabled=true;btn.textContent="Placing order…";
+  try{const o=await api("/api/orders",{method:"POST",body:JSON.stringify({seat:s,items:cart,payment,note:$("fNote").value.trim()})});
+    seat=s;store.set("seat",s);renderSeat();
+    if(o.razorpay)return payOnline(o,btn);
+    orderDone(o)}
+  catch(e){$("err").textContent=e.message;btn.disabled=false;btn.textContent="Try again";loadMenu()}}
+function orderDone(o){cart={};saveCart();renderMenu();updateBar();
+  const mine=store.get("myOrders",[]);if(!mine.includes(o.id))mine.unshift(o.id);store.set("myOrders",mine.slice(0,5));
+  showTrack(o);loadMine()}
+function payOnline(o,btn){
+  if(!window.Razorpay){$("err").textContent="The payment window didn't load. Check your connection, or choose pay at seat.";btn.disabled=false;btn.textContent="Try again";return}
+  const rp=o.razorpay;
+  const rzp=new Razorpay({key:rp.key,order_id:rp.orderId,amount:rp.amount,currency:rp.currency,name:rp.name,
+    description:`Order ${o.id} · ${seatText(o.seat)}`,theme:{color:"#c2185b"},
+    notes:{seat:seatText(o.seat)},
+    handler:async r=>{btn.textContent="Confirming payment…";
+      try{orderDone(await api(`/api/orders/${o.id}/verify`,{method:"POST",body:JSON.stringify(r)}))}
+      catch(e){$("err").textContent=e.message+` (Order ${o.id})`;btn.disabled=false;btn.textContent="Try again"}},
+    modal:{ondismiss:()=>paymentCancelled(o,btn)}});
+  rzp.on("payment.failed",r=>{$("err").textContent="Payment failed: "+(r.error?.description||"please try again")+"."});
+  rzp.open()}
+function paymentCancelled(o,btn){
+  btn.disabled=false;btn.textContent="Pay now · "+rs(o.total);btn.onclick=()=>{btn.disabled=true;payOnline(o,btn)};
+  const seatPays=PAYS.filter(p=>p!=="Online");
+  $("err").innerHTML=`Payment not completed. Your order hasn't been sent yet.`+(seatPays.length?` <button class="add" id="seatPay" style="margin-left:6px">Pay at seat instead</button>`:"");
+  if(seatPays.length)$("seatPay").onclick=async()=>{try{orderDone(await api(`/api/orders/${o.id}/pay-at-seat`,{method:"POST",body:JSON.stringify({payment:seatPays[0]})}))}catch(e){$("err").textContent=e.message}}}
 
-async function download(url,fallbackName){try{const r=await fetch(url,{headers:{"x-staff-pin":PIN}});if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error||"Download failed");
-  const name=(/filename="([^"]+)"/.exec(r.headers.get("content-disposition")||"")||[])[1]||fallbackName;
-  const a=document.createElement("a");a.href=URL.createObjectURL(await r.blob());a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}catch(e){toast(e.message)}}
-$("exportBtn").onclick=()=>download("/api/staff/menu.csv","menu.csv");
-$("repDate").value=new Date(Date.now()+5.5*3600e3).toISOString().slice(0,10);
-$("reportBtn").onclick=()=>download("/api/staff/report.csv?date="+$("repDate").value,"sales.csv");
+const STEP={"Preparing":1,"On the way":2,"Delivered":3};
+let tracker=null;
+function stopTrack(){clearInterval(tracker);tracker=null}
+function showTrack(o){
+  const n=STEP[o.status]||0,cancelled=o.status==="Cancelled";
+  openSheet(`<div class="done"><div class="muted">${cancelled?"Order cancelled":"Order placed"}</div><div class="big">${o.id}</div>
+  <p>Delivering to <b>${seatText(o.seat)}</b> · ${rs(o.total)} · ${o.paymentStatus==="Paid"?"<b>Paid online ✓</b>":"pay by "+esc(o.payment)+" at your seat"}</p>
+  <div class="steps">${[1,2,3].map(i=>`<div class="${i<=n?"on":""}"></div>`).join("")}</div>
+  <div class="muted" style="display:flex;justify-content:space-between;font-size:12px"><span>Preparing</span><span>On the way</span><span>At your seat</span></div>
+  <p class="muted" style="font-size:13px">${cancelled?"Please call a staff member if you need help.":"This screen updates by itself. Please keep your phone on silent."}</p>
+  <button class="primary" id="ok">Back to menu</button></div>`);
+  $("ok").onclick=closeSheet;
+  if(!tracker&&!cancelled&&o.status!=="Delivered")tracker=setInterval(async()=>{try{const u=await api("/api/orders/"+o.id);if(u.status!==o.status){o=u;stopTrack();showTrack(u);loadMine()}}catch(e){}},8000)}
 
-function expand(r){r=r.toUpperCase().replace(/\s/g,"");const m=/^([A-Z])-([A-Z])$/.exec(r);if(m){const a=[];for(let c=m[1].charCodeAt(0);c<=m[2].charCodeAt(0);c++)a.push(String.fromCharCode(c));return a}return r.split(",").filter(Boolean)}
-function nums(r){const m=/^(\d+)-(\d+)$/.exec(r.trim());if(m){const a=[];for(let n=+m[1];n<=+m[2]&&a.length<60;n++)a.push(n);return a}return r.split(",").map(x=>x.trim()).filter(x=>/^\d+$/.test(x))}
-$("qBase").value=location.origin+"/";
-function genQR(){const base=$("qBase").value.trim().replace(/[?#].*$/,""),sc=$("qScreen").value||"1",out=$("qrOut");out.innerHTML="";let n=0;
-  for(const r of expand($("qRows").value))for(const s of nums($("qSeats").value)){if(n++>=300)break;
-    const t=document.createElement("div");t.className="qrt";t.innerHTML=`<div class="h">Scan to order to your seat</div><div class="q"></div><div class="s">Screen ${sc} · ${r}${s}</div><div class="h">${esc($("brandName").textContent)}</div>`;out.appendChild(t);
-    try{new QRCode(t.querySelector(".q"),{text:`${base}?seat=S${sc}-${r}${s}`,width:128,height:128,correctLevel:QRCode.CorrectLevel.M})}catch(e){t.querySelector(".q").textContent="QR library didn't load"}}}
-$("genQR").onclick=genQR;$("printQR").onclick=()=>window.print();
+async function loadMine(){const ids=store.get("myOrders",[]);const out=[];
+  for(const id of ids){try{const o=await api("/api/orders/"+id);if(o.status!=="Awaiting payment"&&Date.now()-o.createdAt<1000*60*60*4)out.push(o)}catch(e){}}
+  $("mine").innerHTML=out.map(o=>`<div class="card"><span><b>${o.id}</b> · ${o.items.map(i=>i.qty+"× "+esc(i.name)).join(", ")}</span><span class="pill">${o.status}</span><button class="add" data-track="${o.id}">Track</button></div>`).join("");}
+$("mine").addEventListener("click",async e=>{const b=e.target.closest("[data-track]");if(b)showTrack(await api("/api/orders/"+b.dataset.track))});
 
-if(PIN)api("/api/staff/check").then(start).catch(()=>{});
+renderSeat();loadMenu();loadMine();setInterval(loadMine,30000);
+setInterval(()=>{if($("sheet").hidden&&!$("search").value)loadMenu()},60000);
+if(!seat)$("changeSeat").click();
 </script>
 </body>
 </html>

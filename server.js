@@ -2,7 +2,7 @@
 // Customer app at "/", cafe app at "/cafe". Stores the menu and orders in SQLite,
 // takes Razorpay payments, and streams every new order live to the cafe app.
 const express = require("express");
-const Database = require("better-sqlite3");
+const { DatabaseSync } = require("node:sqlite"); // built into Node 22.13+, nothing to compile
 const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
@@ -28,8 +28,13 @@ const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 
 // ---------- Database ----------
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-const db = new Database(path.join(DATA_DIR, "albake.db"));
-db.pragma("journal_mode = WAL");
+const db = new DatabaseSync(path.join(DATA_DIR, "albake.db"));
+db.exec("PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;");
+// Runs fn inside one database transaction (all-or-nothing)
+db.transaction = fn => (...args) => {
+  db.exec("BEGIN");
+  try { const r = fn(...args); db.exec("COMMIT"); return r; } catch (e) { db.exec("ROLLBACK"); throw e; }
+};
 db.exec(`
 CREATE TABLE IF NOT EXISTS items (
   id TEXT PRIMARY KEY, category TEXT NOT NULL, emoji TEXT, name TEXT NOT NULL,

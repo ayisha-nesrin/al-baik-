@@ -1,9 +1,8 @@
 FROM node:22-slim
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev --no-audit --no-fund
 COPY . .
-ENV DATA_DIR=/data PORT=3000
-VOLUME /data
+ENV DATA_DIR=/data PORT=3000 NODE_ENV=production
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["node", "--disable-warning=ExperimentalWarning", "server.js"]
