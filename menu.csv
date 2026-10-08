@@ -1,0 +1,57 @@
+category,name,price,description,veg,emoji,available
+Burgers & Snacks,Classic Chicken Burger,170,,no,🍔,yes
+Burgers & Snacks,Chicken Double Burger,199,,no,🍔,yes
+Burgers & Snacks,Golden Crunch Burger,140,,no,🍔,yes
+Burgers & Snacks,Crispy Crunch Burger,199,,no,🍔,yes
+Burgers & Snacks,Veg Burger,130,,yes,🍔,yes
+Burgers & Snacks,Chicken Strips (4 pcs),169,,no,🍗,yes
+Burgers & Snacks,Chicken Strips (8 pcs),329,,no,🍗,yes
+Burgers & Snacks,Chicken Strips (16 pcs),499,,no,🍗,yes
+Burgers & Snacks,Chicken Pops,180,,no,🍗,yes
+Burgers & Snacks,Chicken Nuggets,230,,no,🍗,yes
+Burgers & Snacks,Chicken Samosa,90,,no,🥟,yes
+Burgers & Snacks,Hash Brown,80,,yes,🥔,yes
+Burgers & Snacks,Veg Samosa,75,,yes,🥟,yes
+Burgers & Snacks,Veg Momo,130,,yes,🥟,yes
+Burgers & Snacks,Chicken Momo,150,,no,🥟,yes
+Burgers & Snacks,Potato (Regular),130,,yes,🍟,yes
+Burgers & Snacks,Potato (Large),150,,yes,🍟,yes
+Special Burgers,Special Classic Chicken Burger,140,,no,🍔,yes
+Special Burgers,Special Chicken Burger,180,,no,🍔,yes
+Special Burgers,Special Crispy Chicken Burger,160,,no,🍔,yes
+Special Burgers,Special Golden Crunch Burger,160,,no,🍔,yes
+Special Burgers,Special Veg Burger,130,,yes,🍔,yes
+Combo Meals,Albaik Snacks Meal,179,"2 pcs fried chicken, 1 bun, mayo, ketchup",no,🍗,yes
+Combo Meals,Albaik Dinner Meal,379,"4 pcs fried chicken, 2 buns, mayo, ketchup, Pepsi",no,🍗,yes
+Combo Meals,Albaik Combo Meal,579,"6 pcs fried chicken, 3 buns, fries, 2 Pepsi, mayo, ketchup",no,🍗,yes
+Combo Meals,Albaik Family Meal,779,"9 pcs fried chicken, 4 buns, fries, 3 Pepsi, mayo, ketchup",no,🍗,yes
+Combo Meals,Albaik Family Special Meal,979,"12 pcs fried chicken, 6 buns, fries, 4 Pepsi, mayo, ketchup",no,🍗,yes
+Combo Meals,Albaik Jumbo Meal,1379,"18 pcs chicken, 8 buns, fries, 4 Coke, dip",no,🍗,yes
+Sandwich & Wrap,Veg Sandwich,120,"Vegetables, potato and cheese",yes,🥪,yes
+Sandwich & Wrap,Classic Chicken Wrap,139,"Tortilla with chicken, vegetables and cheese",no,🌯,yes
+Sandwich & Wrap,Veg Wrap,129,Tortilla with vegetables and cheese,yes,🌯,yes
+Sandwich & Wrap,Bull's Eye with Bread,100,,no,🍳,yes
+Sandwich & Wrap,Green Salad,80,,yes,🥗,yes
+Biryani & Seafood,Thalassery Dum Biryani,120,,no,🍛,yes
+Biryani & Seafood,Butterfly Prawns,220,,no,🍤,yes
+Juice,Orange Juice,80,,yes,🍊,yes
+Juice,Lime Juice,30,,yes,🍋,yes
+Juice,Mint Lime,50,,yes,🍋,yes
+Juice,Watermelon Juice,70,,yes,🍉,yes
+Juice,Pineapple Juice,70,,yes,🍍,yes
+Mojito,Watermelon Mojito,120,,yes,🍹,yes
+Mojito,Orange Mojito,120,,yes,🍹,yes
+Mojito,Green Apple Mojito,130,,yes,🍹,yes
+Mojito,Passion Fruit Mojito,130,,yes,🍹,yes
+Mojito,Blue Curacao Mojito,140,,yes,🍹,yes
+Mojito,Classic Mint Mojito,90,,yes,🍹,yes
+Mojito,Blueberry Mojito,90,,yes,🍹,yes
+Shakes,Avocado Shake,149,,yes,🥑,yes
+Shakes,Sharjah Shake,110,,yes,🥤,yes
+Shakes,Mango Shake,120,,yes,🥭,yes
+Shakes,Chocolate Shake,130,,yes,🍫,yes
+Shakes,Pista Shake,120,,yes,🥤,yes
+Shakes,Tender Coconut Shake,160,,yes,🥥,yes
+Shakes,Shake with Ice Cream,160,,yes,🍨,yes
+Shakes,Chocolate Sharjah,149,,yes,🍫,yes
+Beverages,Cold Coffee,80,,yes,☕,yes
