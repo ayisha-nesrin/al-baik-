@@ -6,7 +6,7 @@ const { DatabaseSync } = require("node:sqlite"); // built into Node 22.13+, noth
 const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
-const { parseCsv, toCsv } = require("./lib/csv");
+const { parseCsv, toCsv } = require("./csv");
 
 // ---------- Settings (environment variables) ----------
 const env = (k, d) => (process.env[k] === undefined || process.env[k] === "" ? d : process.env[k]);
@@ -200,7 +200,7 @@ app.post("/api/razorpay/webhook", express.raw({ type: "*/*", limit: "1mb" }), (r
 });
 
 app.use(express.json({ limit: "300kb" }));
-app.use(express.static(path.join(__dirname, "public"), { index: false, maxAge: "1h" }));
+app.get("/style.css", (req, res) => res.sendFile(path.join(__dirname, "style.css"), { maxAge: "1h" }));
 app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "7d", fallthrough: false }));
 
 app.get("/healthz", (req, res) => res.json({ ok: true }));
@@ -441,8 +441,8 @@ staff.get("/stream", (req, res) => {
 app.use("/api/staff", staff);
 
 // ---------- Pages ----------
-app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public", "customer", "index.html")));
-app.get(["/cafe", "/cafe/"], (req, res) => res.sendFile(path.join(__dirname, "public", "cafe", "index.html")));
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "customer.html")));
+app.get(["/cafe", "/cafe/"], (req, res) => res.sendFile(path.join(__dirname, "cafe.html")));
 app.get("/staff", (req, res) => res.redirect("/cafe"));
 app.use("/api", (req, res) => res.status(404).json({ error: "Not found" }));
 app.use((req, res) => res.redirect("/"));
